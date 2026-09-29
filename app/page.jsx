@@ -3,8 +3,12 @@ import LoginForm from '@/components/LoginForm';
 import { db } from '@/lib/db';
 
 export default async function LandingPage() {
-  // Ambil pengumuman dari Turso (Admin bisa post gambar/teks)
-  const announcements = await db.execute('SELECT * FROM Announcements ORDER BY created_at DESC');
+  let announcements = { rows: [] };
+  try {
+    announcements = await db.execute('SELECT * FROM Announcements ORDER BY created_at DESC');
+  } catch (error) {
+    console.error("Gagal mengambil pengumuman:", error);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-blue-50 font-sans">

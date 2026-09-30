@@ -14,5 +14,5 @@ export async function POST(request) {
     args: [id]
   });
 
-  return NextResponse.redirect(new URL('/dashboard/admin/pengumuman', request.url), 303);
+  return NextResponse.redirect(new URL('/?menu=pengumuman', request.url), 303);
 }

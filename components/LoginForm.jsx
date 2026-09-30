@@ -23,7 +23,7 @@ export default function LoginForm() {
       
       if (res.ok) {
         // Navigasi paksa agar cookie terbaca sempurna oleh server Next.js
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
         setError(data.error || 'Terjadi kesalahan sistem.');
         setLoading(false);

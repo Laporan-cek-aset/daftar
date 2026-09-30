@@ -1,13 +1,11 @@
 'use client';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function LoginForm() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,27 +20,27 @@ export default function LoginForm() {
       });
 
       const data = await res.json();
+      
       if (res.ok) {
-        router.push(`/dashboard/${data.role}`);
-        router.refresh();
+        // Navigasi paksa agar cookie terbaca sempurna oleh server Next.js
+        window.location.href = `/dashboard/${data.role.toLowerCase()}`;
       } else {
         setError(data.error || 'Terjadi kesalahan sistem.');
+        setLoading(false);
       }
     } catch (err) {
       setError('Gagal terhubung ke server. Periksa koneksi Anda.');
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="bg-white p-8 rounded-3xl shadow-[0_10px_40px_rgb(0,0,0,0.08)] border border-emerald-50 relative overflow-hidden">
-      {/* Garis atas dekoratif Emas */}
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#f59e0b] via-[#fbbf24] to-[#d97706]"></div>
       
       <div className="text-center mb-8 mt-2">
         <div className="inline-flex items-center justify-center w-14 h-14 bg-emerald-50 rounded-2xl mb-4 border border-emerald-100 shadow-inner">
-          <svg style={{ width: '28px', height: '28px' }} className="text-[#064e3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          <svg style={{ width: '28px', height: '28px' }} className="text-[#064e3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
         <h2 className="text-3xl font-extrabold text-[#064e3b]">Portal Guru</h2>
         <p className="text-sm text-emerald-600 mt-2 font-medium">Silakan login untuk mendaftarkan siswa.</p>
@@ -87,20 +85,16 @@ export default function LoginForm() {
           className={`w-full text-[#064e3b] font-extrabold py-4 rounded-xl transition-all shadow-lg mt-4 flex justify-center items-center gap-2 text-lg border-b-4 
             ${loading ? 'bg-amber-300 border-amber-400 cursor-not-allowed' : 'bg-[#fbbf24] border-[#d97706] hover:bg-[#f59e0b] hover:border-[#b45309] hover:-translate-y-1 active:translate-y-0 active:border-b-0'}`}
         >
-          {loading ? (
-             <>
-               <svg style={{ width: '20px', height: '20px' }} className="animate-spin text-[#064e3b]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-               Memproses...
-             </>
-          ) : 'Masuk ke Sistem'}
+          {loading ? 'Memproses...' : 'Masuk ke Sistem'}
         </button>
-        <div className="mt-6 text-center text-sm font-medium text-gray-600">
-          Belum punya akun?{' '}
-          <a href="/register" className="text-[#064e3b] font-extrabold hover:text-[#d97706] hover:underline transition-colors">
-            Daftar Khusus Guru
-          </a>
-        </div>
       </form>
+      
+      <div className="mt-6 text-center text-sm font-medium text-gray-600">
+        Belum punya akun?{' '}
+        <a href="/register" className="text-[#064e3b] font-extrabold hover:text-[#d97706] hover:underline transition-colors">
+          Daftar Khusus Guru
+        </a>
+      </div>
     </div>
   );
 }

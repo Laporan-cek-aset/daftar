@@ -61,7 +61,7 @@ export default async function DashboardGuru() {
           <div className="bg-white p-6 rounded-xl border border-amber-200 mb-6 shadow-sm">
              <p className="font-bold text-gray-800 mb-2">1. Transfer nominal di atas ke rekening berikut:</p>
              <div className="bg-gray-100 p-4 rounded-lg font-mono text-lg text-[#064e3b] mb-4">
-               <strong>Bank BCA:</strong> 123456789 <br/> <span className="text-sm">(a.n Suwanto)</span>
+               <strong>Bank BSI:</strong> 7128198878 <br/> <span className="text-sm">(a.n KHOTIMAH)</span>
              </div>
              <p className="font-bold text-gray-800 mb-2">2. Kirim bukti transfer via WhatsApp ke Admin:</p>
              

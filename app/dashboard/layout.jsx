@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 export default async function DashboardLayout({ children }) {
   const session = await getSession();
   
-  // Jika belum login, tendang ke halaman depan
   if (!session) {
     redirect('/');
   }
@@ -13,29 +12,24 @@ export default async function DashboardLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#f4f7f4] flex flex-col md:flex-row font-sans">
-      {/* Sidebar Hijau Elegan */}
       <aside className="w-full md:w-64 bg-[#064e3b] text-white flex flex-col shadow-2xl z-10">
         <div className="p-6 border-b border-emerald-700/50">
           <div className="w-12 h-12 bg-gradient-to-br from-[#fbbf24] to-[#d97706] rounded-xl flex items-center justify-center border border-white shadow-sm mb-4">
              <span className="text-sm font-extrabold text-[#064e3b]">TKA</span>
           </div>
-          <h2 className="text-xl font-extrabold text-[#fcd34d] tracking-wide">
-            Portal {isGuru ? 'Guru' : 'Admin'}
-          </h2>
-          <p className="text-sm text-emerald-200 mt-1 font-medium truncate">
-            {session.username}
-          </p>
+          <h2 className="text-xl font-extrabold text-[#fcd34d] tracking-wide">Portal {isGuru ? 'Guru' : 'Admin'}</h2>
+          <p className="text-sm text-emerald-200 mt-1 font-medium truncate">{session.username}</p>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
           <a href={`/dashboard/${session.role}`} className="block px-4 py-3 bg-[#047857] rounded-xl text-[#fcd34d] font-bold shadow-sm border-l-4 border-[#fbbf24]">
             🏠 Dashboard
           </a>
-          {/* Menu Admin Tambahan (Opsional) */}
           {!isGuru && (
-            <a href="/dashboard/admin/pengumuman" className="block px-4 py-3 hover:bg-emerald-800 rounded-xl text-emerald-100 font-medium transition-colors">
-              📢 Kelola Pengumuman
-            </a>
+            <>
+              <a href="/dashboard/admin/pengumuman" className="block px-4 py-3 hover:bg-emerald-800 rounded-xl text-emerald-100 font-medium transition-colors">📢 Kelola Pengumuman</a>
+              <a href="/dashboard/admin/sekolah" className="block px-4 py-3 hover:bg-emerald-800 rounded-xl text-emerald-100 font-medium transition-colors">🏫 Daftar Sekolah</a>
+            </>
           )}
         </nav>
 
@@ -49,7 +43,6 @@ export default async function DashboardLayout({ children }) {
         </div>
       </aside>
 
-      {/* Konten Utama */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto">
         {children}
       </main>

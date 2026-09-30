@@ -15,5 +15,5 @@ export async function POST(request) {
     args: [payment_id]
   });
 
-  return NextResponse.redirect(new URL('/dashboard/admin', request.url), 303);
+  return NextResponse.redirect(new URL('/', request.url), 303);
 }

@@ -94,6 +94,12 @@ export default function LoginForm() {
              </>
           ) : 'Masuk ke Sistem'}
         </button>
+        <div className="mt-6 text-center text-sm font-medium text-gray-600">
+          Belum punya akun?{' '}
+          <a href="/register" className="text-[#064e3b] font-extrabold hover:text-[#d97706] hover:underline transition-colors">
+            Daftar Khusus Guru
+          </a>
+        </div>
       </form>
     </div>
   );

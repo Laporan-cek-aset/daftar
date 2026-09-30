@@ -1,62 +1,289 @@
 export const dynamic = 'force-dynamic';
+import { db } from '@/lib/db';
+import { getSession } from '@/lib/session';
 import LoginForm from '@/components/LoginForm';
 import AnnouncementList from '@/components/AnnouncementList';
-import { db } from '@/lib/db';
+import UploadExcelComponent from '@/components/UploadExcelComponent';
 
-export default async function LandingPage() {
-  let announcements = { rows: [] };
-  try {
-    announcements = await db.execute('SELECT * FROM Announcements ORDER BY created_at DESC');
-  } catch (error) {
-    console.error("Gagal mengambil pengumuman:", error);
+// =========================================================================
+// OTAK UTAMA APLIKASI (SATU LINK UNTUK SEMUA)
+// =========================================================================
+export default async function MainApp({ searchParams }) {
+  const session = await getSession();
+  const menu = searchParams?.menu || 'dashboard';
+
+  // ---------------------------------------------------------
+  // 1. JIKA BELUM LOGIN (TAMPILKAN LANDING PAGE)
+  // ---------------------------------------------------------
+  if (!session) {
+    let announcements = { rows: [] };
+    try {
+      announcements = await db.execute('SELECT * FROM Announcements ORDER BY created_at DESC');
+    } catch (e) { console.error(e); }
+
+    return (
+      <div className="min-h-screen flex flex-col bg-[#f4f7f4] font-sans text-gray-800">
+        <header className="bg-[#064e3b] shadow-lg border-b-[6px] border-[#d97706] sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#fbbf24] to-[#d97706] rounded-full flex items-center justify-center border-2 border-white shadow-md">
+                 <span className="text-xl font-extrabold text-[#064e3b] tracking-wider">TKA</span>
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#fcd34d] tracking-wide drop-shadow-sm">Tryout TKA KKGMI</h1>
+                <p className="text-emerald-100 font-medium tracking-widest text-sm uppercase">Surabaya 10</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex flex-col md:flex-row gap-10">
+          <section className="md:w-2/3 flex flex-col">
+            <div className="bg-white rounded-3xl shadow-lg border border-emerald-100 overflow-hidden flex flex-col h-full max-h-[75vh]">
+              <div className="bg-gradient-to-r from-[#064e3b] to-[#047857] text-white p-6 border-b-4 border-[#fbbf24] flex items-center gap-3">
+                 <span style={{ fontSize: '24px' }}>📢</span>
+                 <h2 className="text-2xl font-bold tracking-wide text-[#fcd34d]">Papan Pengumuman</h2>
+              </div>
+              <div className="p-8 overflow-y-auto bg-gray-50/50 flex-grow">
+                 <AnnouncementList announcements={announcements.rows} />
+              </div>
+            </div>
+          </section>
+          <section className="md:w-1/3"><LoginForm /></section>
+        </main>
+        
+        <footer className="bg-[#064e3b] mt-auto">
+          <div className="max-w-7xl mx-auto px-4 py-8 text-center text-emerald-50">
+            <p className="font-extrabold tracking-[0.3em] uppercase text-sm mb-3 text-[#d97706]">Belajar Inovasi</p>
+            <div className="w-16 h-1 bg-[#fbbf24] mx-auto mb-4 rounded-full"></div>
+            <p className="text-emerald-300 text-sm font-medium">© {new Date().getFullYear()} KKGMI Surabaya 10. All rights reserved.</p>
+          </div>
+        </footer>
+      </div>
+    );
   }
 
+  // ---------------------------------------------------------
+  // 2. JIKA SUDAH LOGIN (TAMPILKAN DASHBOARD GURU / ADMIN)
+  // ---------------------------------------------------------
+  const isGuru = session.role === 'guru' || session.Role === 'guru';
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#f4f7f4] font-sans text-gray-800">
-      <header className="bg-[#064e3b] shadow-lg border-b-[6px] border-[#d97706] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
-          <div className="flex items-center gap-5 w-full justify-center md:justify-start">
-            <div className="w-16 h-16 bg-gradient-to-br from-[#fbbf24] to-[#d97706] rounded-full flex items-center justify-center border-2 border-white shadow-md">
-               <span className="text-xl font-extrabold text-[#064e3b] tracking-wider">TKA</span>
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#fcd34d] tracking-wide drop-shadow-sm">Tryout TKA KKGMI</h1>
-              <p className="text-emerald-100 font-medium tracking-widest text-sm uppercase">Surabaya 10</p>
-            </div>
+    <div className="min-h-screen bg-[#f4f7f4] flex flex-col md:flex-row font-sans">
+      
+      {/* SIDEBAR BERSAMA (KIRI) */}
+      <aside className="w-full md:w-64 bg-[#064e3b] text-white flex flex-col shadow-2xl z-10">
+        <div className="p-6 border-b border-emerald-700/50">
+          <div className="w-12 h-12 bg-gradient-to-br from-[#fbbf24] to-[#d97706] rounded-xl flex items-center justify-center border border-white mb-4">
+             <span className="text-sm font-extrabold text-[#064e3b]">TKA</span>
           </div>
+          <h2 className="text-xl font-extrabold text-[#fcd34d]">Portal {isGuru ? 'Guru' : 'Admin'}</h2>
+          <p className="text-sm text-emerald-200 mt-1 font-medium truncate">{session.username}</p>
         </div>
-      </header>
+        
+        <nav className="flex-1 p-4 space-y-2">
+          <a href="/?menu=dashboard" className={`block px-4 py-3 rounded-xl font-bold transition-colors ${menu === 'dashboard' ? 'bg-[#047857] text-[#fcd34d] shadow-sm border-l-4 border-[#fbbf24]' : 'hover:bg-emerald-800 text-emerald-100'}`}>
+            🏠 Dashboard
+          </a>
+          {!isGuru && (
+            <>
+              <a href="/?menu=pengumuman" className={`block px-4 py-3 rounded-xl font-bold transition-colors ${menu === 'pengumuman' ? 'bg-[#047857] text-[#fcd34d] shadow-sm border-l-4 border-[#fbbf24]' : 'hover:bg-emerald-800 text-emerald-100'}`}>
+                📢 Kelola Pengumuman
+              </a>
+              <a href="/?menu=sekolah" className={`block px-4 py-3 rounded-xl font-bold transition-colors ${menu === 'sekolah' ? 'bg-[#047857] text-[#fcd34d] shadow-sm border-l-4 border-[#fbbf24]' : 'hover:bg-emerald-800 text-emerald-100'}`}>
+                🏫 Daftar Sekolah
+              </a>
+            </>
+          )}
+        </nav>
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full flex flex-col md:flex-row gap-10">
-        <section className="md:w-2/3 flex flex-col">
-          <div className="bg-white rounded-3xl shadow-lg border border-emerald-100 overflow-hidden flex flex-col h-full max-h-[75vh]">
-            <div className="bg-gradient-to-r from-[#064e3b] to-[#047857] text-white p-6 border-b-4 border-[#fbbf24] flex items-center gap-3">
-               <span style={{ fontSize: '24px' }}>📢</span>
-               <h2 className="text-2xl font-bold tracking-wide text-[#fcd34d]">Papan Pengumuman</h2>
-            </div>
-            <div className="p-8 overflow-y-auto bg-gray-50/50 flex-grow">
-               {/* Memanggil komponen Popup */}
-               <AnnouncementList announcements={announcements.rows} />
-            </div>
-          </div>
-        </section>
+        <div className="p-4 border-t border-emerald-700/50">
+          <form action="/api/logout" method="POST">
+            <button type="submit" className="w-full text-left px-4 py-3 text-red-300 hover:bg-emerald-800 hover:text-red-200 rounded-xl font-bold flex items-center gap-2">
+              Keluar Sistem
+            </button>
+          </form>
+        </div>
+      </aside>
 
-        <section className="md:w-1/3">
-           <LoginForm />
-        </section>
+      {/* KONTEN DINAMIS (KANAN) */}
+      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+        {isGuru ? <GuruView session={session} /> : <AdminView session={session} menu={menu} />}
       </main>
+    </div>
+  );
+}
 
-      <a href="https://wa.me/6285895283075" target="_blank" rel="noopener noreferrer" className="fixed bottom-8 right-8 bg-gradient-to-r from-[#10b981] to-[#059669] text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all z-50 flex items-center justify-center border-2 border-white">
-         <svg style={{ width: '32px', height: '32px' }} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-      </a>
+// =========================================================================
+// KOMPONEN: TAMPILAN GURU
+// =========================================================================
+async function GuruView({ session }) {
+  const userCheck = await db.execute({ sql: 'SELECT Sekolah FROM Users WHERE ID = ? OR Username = ?', args: [session.id, session.username] });
+  const sekolahGuru = userCheck.rows[0]?.Sekolah || '';
+  
+  const paymentCheck = await db.execute({ sql: 'SELECT * FROM Payments WHERE guru_id = ? ORDER BY created_at DESC LIMIT 1', args: [session.id] });
+  const payment = paymentCheck.rows[0];
 
-      <footer className="bg-[#064e3b] mt-auto">
-        <div className="max-w-7xl mx-auto px-4 py-8 text-center text-emerald-50">
-          <p className="font-extrabold tracking-[0.3em] uppercase text-sm mb-3 text-[#d97706]">Belajar Inovasi</p>
-          <div className="w-16 h-1 bg-[#fbbf24] mx-auto mb-4 rounded-full"></div>
-          <p className="text-emerald-300 text-sm font-medium">© {new Date().getFullYear()} KKGMI Surabaya 10. All rights reserved.</p>
+  const studentsCheck = await db.execute({ sql: "SELECT ID, Nama, Username, Password, Kelas FROM Users WHERE Role = 'siswa' AND Sekolah = ?", args: [sekolahGuru] });
+  const students = studentsCheck.rows || [];
+
+  return (
+    <div className="max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-extrabold text-[#064e3b]">Selamat Datang, Pendamping!</h1>
+        <p className="text-emerald-600 font-medium mt-2">Kelola pendaftaran siswa dari <strong className="text-[#d97706]">{sekolahGuru}</strong>.</p>
+      </div>
+      
+      {!payment ? (
+        <div className="bg-white p-8 rounded-3xl shadow-lg border border-emerald-50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#fbbf24]"></div>
+          <h2 className="text-2xl font-bold text-[#064e3b] mb-4">Langkah 1: Pembayaran Tryout</h2>
+          <div className="bg-amber-50 p-4 rounded-xl mb-6 border border-amber-200">
+            <h3 className="font-bold text-amber-900 mb-2">📌 Informasi Pembayaran:</h3>
+            <ul className="list-disc ml-5 text-amber-800 text-sm font-medium space-y-1">
+              <li>Biaya pendaftaran per siswa: <strong>Rp 15.000</strong>.</li>
+              <li>Masukkan total siswa yang akan ikut untuk membuat tagihan otomatis.</li>
+            </ul>
+          </div>
+          <form action="/api/payment" method="POST" className="space-y-5 bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100">
+            <div>
+              <label className="block text-sm font-bold text-[#064e3b] mb-2">Jumlah Siswa yang didaftarkan:</label>
+              <input type="number" name="jumlah_siswa" min="1" className="border-2 border-emerald-200 px-4 py-3 w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-[#059669]" placeholder="Cth: 20" required />
+            </div>
+            <button type="submit" className="w-full bg-[#fbbf24] text-[#064e3b] font-extrabold py-3.5 rounded-xl hover:bg-[#f59e0b] shadow-md border-b-4 border-[#d97706] active:translate-y-1 active:border-b-0">Buat Tagihan Pembayaran</button>
+          </form>
         </div>
-      </footer>
+      ) : payment.status === 'Pending' ? (
+        <div className="bg-amber-50 p-8 rounded-3xl text-amber-800 border-2 border-amber-200 shadow-sm">
+          <h2 className="font-extrabold text-2xl mb-4 text-amber-900">Langkah 2: Konfirmasi Pembayaran</h2>
+          <p className="font-medium text-lg mb-4">Total Tagihan: <strong className="text-2xl text-red-600">Rp {payment.total_bayar.toLocaleString('id-ID')}</strong> untuk <strong>{payment.jumlah_siswa} Siswa</strong>.</p>
+          <div className="bg-white p-6 rounded-xl border border-amber-200 mb-6 shadow-sm">
+             <p className="font-bold text-gray-800 mb-2">1. Transfer nominal di atas ke rekening berikut:</p>
+             <div className="bg-gray-100 p-4 rounded-lg font-mono text-lg text-[#064e3b] mb-4"><strong>Bank BCA:</strong> 123456789 <span className="text-sm">(a.n Suwanto)</span></div>
+             <p className="font-bold text-gray-800 mb-2">2. Kirim bukti transfer via WhatsApp ke Admin:</p>
+             <a href={`https://wa.me/6285895283075?text=Halo%20Admin%20Tryout,%20saya%20dari%20${encodeURIComponent(sekolahGuru)}.%20Ini%20bukti%20transfer%20untuk%20${payment.jumlah_siswa}%20siswa%20sebesar%20Rp%20${payment.total_bayar.toLocaleString('id-ID')}.`} target="_blank" rel="noopener noreferrer" className="inline-flex bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-3 rounded-xl font-extrabold shadow-md">
+                Kirim Bukti via WhatsApp
+             </a>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white p-8 rounded-3xl shadow-lg border border-emerald-50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-[#10b981]"></div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-extrabold text-[#059669]">Akses Pendaftaran Terbuka</h2>
+            <a href="/template/Users.xlsx" download className="bg-emerald-100 text-emerald-800 px-5 py-2.5 rounded-xl shadow-sm hover:bg-emerald-200 font-bold border border-emerald-200">📥 Unduh Template Excel</a>
+          </div>
+          <UploadExcelComponent sekolahGuru={sekolahGuru} studentsData={students} limit={payment.jumlah_siswa} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =========================================================================
+// KOMPONEN: TAMPILAN ADMIN (Berubah sesuai Menu)
+// =========================================================================
+async function AdminView({ menu }) {
+  // --- MENU: KELOLA PENGUMUMAN ---
+  if (menu === 'pengumuman') {
+    const announcements = await db.execute('SELECT * FROM Announcements ORDER BY created_at DESC');
+    return (
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-extrabold text-[#064e3b] mb-8">Kelola Papan Pengumuman</h1>
+        <div className="bg-white p-8 rounded-3xl shadow-lg border border-emerald-50 mb-10">
+          <h2 className="text-xl font-bold text-[#064e3b] mb-4">Buat Pengumuman Baru</h2>
+          <form action="/api/announcement/create" method="POST" className="space-y-4">
+            <input type="text" name="title" required className="w-full border-2 border-emerald-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500" placeholder="Judul Pengumuman" />
+            <textarea name="content" required rows="4" className="w-full border-2 border-emerald-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500" placeholder="Isi Pesan..."></textarea>
+            <input type="url" name="image_url" className="w-full border-2 border-emerald-100 px-4 py-3 rounded-xl focus:ring-2 focus:ring-emerald-500" placeholder="Link Google Drive / Lampiran Gambar (Opsional)" />
+            <button type="submit" className="w-full bg-[#fbbf24] text-[#064e3b] font-extrabold py-3.5 rounded-xl hover:bg-[#f59e0b] shadow-md border-b-4 border-[#d97706] active:translate-y-1 active:border-b-0">Terbitkan Pengumuman</button>
+          </form>
+        </div>
+        <div className="bg-white p-8 rounded-3xl shadow-lg border border-emerald-50">
+          <h2 className="text-xl font-bold text-[#064e3b] mb-4">Riwayat Pengumuman</h2>
+          <div className="space-y-4">
+            {announcements.rows.map((item) => (
+              <div key={item.id} className="border-b border-gray-100 pb-4 flex justify-between items-center">
+                <div>
+                  <h3 className="font-bold text-lg text-gray-800">{item.title}</h3>
+                  <p className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString('id-ID')}</p>
+                </div>
+                <form action="/api/announcement/delete" method="POST">
+                  <input type="hidden" name="id" value={item.id} />
+                  <button type="submit" className="text-red-500 hover:text-red-700 font-bold bg-red-50 px-4 py-2 rounded-xl">Hapus</button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- MENU: DAFTAR SEKOLAH ---
+  if (menu === 'sekolah') {
+    const schools = await db.execute(`SELECT Sekolah, COUNT(ID) as jumlah_siswa FROM Users WHERE Role = 'siswa' AND Sekolah != '' AND Sekolah IS NOT NULL GROUP BY Sekolah ORDER BY jumlah_siswa DESC`);
+    return (
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-extrabold text-[#064e3b] mb-8">Daftar Sekolah Peserta</h1>
+        <div className="bg-white p-8 rounded-3xl shadow-lg border border-emerald-50">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-emerald-50/50">
+                <th className="p-4 border-b border-emerald-100 font-extrabold text-[#064e3b]">No</th>
+                <th className="p-4 border-b border-emerald-100 font-extrabold text-[#064e3b]">Asal Sekolah</th>
+                <th className="p-4 border-b border-emerald-100 font-extrabold text-[#064e3b]">Jumlah Siswa Terdaftar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schools.rows.map((school, index) => (
+                <tr key={index} className="hover:bg-gray-50">
+                  <td className="p-4 border-b border-gray-100 font-bold">{index + 1}</td>
+                  <td className="p-4 border-b border-gray-100 font-bold text-[#064e3b]">{school.Sekolah}</td>
+                  <td className="p-4 border-b border-gray-100"><span className="bg-emerald-100 text-emerald-800 px-4 py-1.5 rounded-full font-bold">{school.jumlah_siswa} Siswa</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  // --- MENU: DEFAULT (VERIFIKASI PEMBAYARAN) ---
+  const pendingPayments = await db.execute(`SELECT p.id, u.Nama, u.Sekolah, p.jumlah_siswa, p.total_bayar FROM Payments p JOIN Users u ON p.guru_id = u.ID WHERE p.status = 'Pending' ORDER BY p.created_at DESC`);
+  return (
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-3xl font-extrabold text-[#064e3b] mb-8">Verifikasi Pembayaran</h1>
+      <div className="bg-white p-6 rounded-3xl shadow-lg border border-emerald-50 overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-emerald-50/50">
+              <th className="p-4 border-b font-extrabold text-[#064e3b]">Guru</th>
+              <th className="p-4 border-b font-extrabold text-[#064e3b]">Sekolah</th>
+              <th className="p-4 border-b font-extrabold text-[#064e3b]">Siswa</th>
+              <th className="p-4 border-b font-extrabold text-[#064e3b]">Bayar</th>
+              <th className="p-4 border-b font-extrabold text-[#064e3b]">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pendingPayments.rows.map((payment) => (
+              <tr key={payment.id} className="hover:bg-gray-50">
+                <td className="p-4 border-b font-bold">{payment.Nama}</td>
+                <td className="p-4 border-b text-gray-600">{payment.Sekolah}</td>
+                <td className="p-4 border-b font-bold text-emerald-600">{payment.jumlah_siswa}</td>
+                <td className="p-4 border-b font-bold text-amber-600">Rp {payment.total_bayar.toLocaleString('id-ID')}</td>
+                <td className="p-4 border-b">
+                  <form action="/api/payment/approve" method="POST">
+                    <input type="hidden" name="payment_id" value={payment.id} />
+                    <button type="submit" className="bg-[#10b981] hover:bg-[#059669] text-white px-5 py-2 rounded-xl text-sm font-bold shadow-md">Setujui</button>
+                  </form>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

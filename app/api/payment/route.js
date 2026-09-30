@@ -34,7 +34,7 @@ export async function POST(request) {
       args: [validGuruId, jumlah_siswa, total_bayar, 'Belum Upload Bukti']
     });
 
-    return NextResponse.redirect(new URL('/dashboard/guru', request.url), 303);
+    return NextResponse.redirect(new URL('/', request.url), 303);
     
   } catch (error) {
     console.error("Payment API Error:", error);

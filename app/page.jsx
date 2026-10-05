@@ -129,7 +129,7 @@ export default async function MasterPage() {
               <p className="font-medium text-base sm:text-lg mb-4">Total Tagihan: <strong className="text-xl sm:text-2xl text-red-600">Rp {payment.total_bayar.toLocaleString('id-ID')}</strong> untuk <strong>{payment.jumlah_siswa} Siswa</strong>.</p>
               <div className="bg-white p-4 sm:p-6 rounded-xl border border-amber-200 mb-6 shadow-sm">
                  <p className="font-bold text-gray-800 mb-2 text-sm sm:text-base">1. Transfer nominal di atas ke rekening berikut:</p>
-                 <div className="bg-gray-100 p-3 sm:p-4 rounded-lg font-mono text-base sm:text-lg text-[#064e3b] mb-4"><strong>Bank BCA:</strong> 123456789 <span className="text-xs sm:text-sm">(a.n Suwanto)</span></div>
+                 <div className="bg-gray-100 p-3 sm:p-4 rounded-lg font-mono text-base sm:text-lg text-[#064e3b] mb-4"><strong>Bank BSI:</strong> 7128198878 <span className="text-xs sm:text-sm">(a.n KHOTIMAH)</span></div>
                  <p className="font-bold text-gray-800 mb-2 text-sm sm:text-base">2. Kirim bukti transfer via WhatsApp ke Admin:</p>
                  <a href={`https://wa.me/6285895283075?text=Halo%20Admin%20Tryout,%20saya%20dari%20${encodeURIComponent(sekolahGuru)}.%20Ini%20bukti%20transfer%20untuk%20${payment.jumlah_siswa}%20siswa%20sebesar%20Rp%20${payment.total_bayar.toLocaleString('id-ID')}.`} target="_blank" rel="noopener noreferrer" className="inline-flex bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-2 sm:px-6 sm:py-3 rounded-xl font-extrabold shadow-md text-sm sm:text-base">
                     Kirim Bukti via WhatsApp
